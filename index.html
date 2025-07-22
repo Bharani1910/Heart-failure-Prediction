@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Heart Failure Prediction</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background-color: #f2f2f2; }
+        h2 { color: #333; }
+        form { background: white; padding: 20px; border-radius: 8px; }
+        input[type=number] { width: 100%; padding: 8px; margin: 6px 0; }
+        input[type=submit] { padding: 10px 20px; background: green; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <h2>Heart Failure Prediction Form</h2>
+    <form action="/predict" method="post">
+        {% for feature in ['Age', 'Anaemia', 'Creatinine Phosphokinase', 'Diabetes', 'Ejection Fraction',
+                          'High Blood Pressure', 'Platelets', 'Serum Creatinine', 'Serum Sodium',
+                          'Sex', 'Smoking', 'Time'] %}
+        <label>{{ feature }}</label>
+        <input type="number" name="{{ loop.index0 }}" step="any" required><br>
+        {% endfor %}
+        <input type="submit" value="Predict">
+    </form>
+    <h3>{{ prediction_text }}</h3>
+</body>
+</html>
