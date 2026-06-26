@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioShield - Heart Failure Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0F172A 0%, #3B0A45 50%, #7F1D1D 100%);
+            --card-bg: rgba(30, 41, 59, 0.45);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --accent-primary: #ef4444;
+            --accent-glow: rgba(239, 68, 68, 0.15);
+            --accent-hover: #dc2626;
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --input-border: rgba(255, 255, 255, 0.1);
+            
+            /* Risk Level Themes */
+            --low-gradient: linear-gradient(135deg, #14532D 0%, #166534 100%);
+            --low-border: #22C55E;
+            --low-text: #4ade80;
+            --low-glow: rgba(34, 197, 94, 0.25);
+
+            --mod-gradient: linear-gradient(135deg, #78350F 0%, #B45309 100%);
+            --mod-border: #F59E0B;
+            --mod-text: #fbbf24;
+            --mod-glow: rgba(245, 158, 11, 0.25);
+
+            --high-gradient: linear-gradient(135deg, #450A0A 0%, #991B1B 100%);
+            --high-border: #EF4444;
+            --high-text: #f87171;
+            --high-glow: rgba(239, 68, 68, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Decorative background elements */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .orb-1 {
+            width: 350px;
+            height: 350px;
+            background: rgba(239, 68, 68, 0.20);
+            top: 8%;
+            left: 8%;
+            filter: blur(120px);
+        }
+        .orb-2 {
+            width: 320px;
+            height: 320px;
+            background: rgba(168, 85, 247, 0.18);
+            bottom: 8%;
+            right: 8%;
+            filter: blur(120px);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #FFFFFF, #FCA5A5, #FFFFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        /* Heart Logo Animation */
+        .heart {
+            display: inline-block;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% {
+                transform: scale(1);
+            }
+            15% {
+                transform: scale(1.2);
+            }
+            30% {
+                transform: scale(1);
+            }
+            45% {
+                transform: scale(1.15);
+            }
+            60% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 25px rgba(239, 68, 68, 0.08);
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.3s ease;
+        }
+
+        .card.faded {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Info Banner above Form */
+        .info-banner {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .info-banner-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .info-banner-text strong {
+            color: var(--text-primary);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            grid-column: span 2;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+            .section-title {
+                grid-column: span 1;
+            }
+            .card {
+                padding: 1.5rem;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .form-group:focus-within label {
+            color: #EF4444;
+        }
+
+        input[type="number"], select {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: #EF4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.30);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        /* Helper text style */
+        .helper-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.125rem;
+            font-style: italic;
+        }
+
+        /* Customize select styling */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.25rem;
+            padding-right: 2.5rem;
+        }
+
+        .submit-btn {
+            position: relative;
+            grid-column: span 2;
+            background: linear-gradient(135deg, #DC2626, #B91C1C);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 1rem;
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(239, 68, 68, 0.45);
+        }
+
+        .submit-btn:disabled {
+            background: rgba(220, 38, 38, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Ripple Effect styles */
+        .ripple {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .submit-btn {
+                grid-column: span 1;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2.5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Result container styling */
+        .result-wrapper {
+            margin-top: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .result-card {
+            width: 100%;
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: resultReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+
+        @keyframes resultReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Result Theme Variants */
+        .result-card.low {
+            background: var(--low-gradient);
+            border-color: var(--low-border);
+            box-shadow: 0 0 30px var(--low-glow);
+        }
+
+        .result-card.moderate {
+            background: var(--mod-gradient);
+            border-color: var(--mod-border);
+            box-shadow: 0 0 30px var(--mod-glow);
+        }
+
+        .result-card.high {
+            background: var(--high-gradient);
+            border-color: var(--high-border);
+            box-shadow: 0 0 30px var(--high-glow);
+        }
+
+        /* Dynamic icon and success animation */
+        .result-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .result-icon.bounce {
+            animation: bounce 0.8s ease infinite alternate;
+        }
+
+        .result-icon.heartbeat {
+            animation: heartbeat 1.2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-12px); }
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .result-card.low .result-title { color: var(--low-text); }
+        .result-card.moderate .result-title { color: var(--mod-text); }
+        .result-card.high .result-title { color: var(--high-text); }
+
+        .result-message {
+            font-size: 1.05rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Prediction Summary Layout */
+        .summary-box {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 1.5rem;
+            text-align: left;
+            margin-bottom: 1rem;
+        }
+
+        .summary-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.5rem;
+        }
+
+        .summary-item {
+            margin-bottom: 1rem;
+        }
+
+        .summary-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .summary-label {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .reset-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: #cbd5e1;
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .reset-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateX(50px);
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--low-text);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--high-text);
+        }
+
+        @keyframes toastSlideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes toastFadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>❤️ CardioShield</h1>
+            <p>Clinical Intelligence for Heart Failure Prediction</p>
+        </div>
+
+        <div class="card" id="form-card">
+            <!-- Warning/Note Box -->
+            <div class="info-banner">
+                <span class="info-banner-icon">💡</span>
+                <span class="info-banner-text">
+                    <strong>Note:</strong> This machine learning model was trained using clinical records within specific value ranges. Values outside these recommended ranges are accepted, but prediction accuracy may be lower because the model has limited experience with such cases.
+                </span>
+            </div>
+
+            <form id="prediction-form" onsubmit="handleFormSubmit(event)">
+                <!-- Section: Patient Demographics & Background -->
+                <div class="section-title">Demographics & Habits</div>
+
+                <div class="form-group">
+                    <label for="age">Age (years)</label>
+                    <input type="number" id="age" name="0" min="1" max="120" step="1" required placeholder="e.g. 60">
+                    <span class="helper-text">Recommended training range: 40–95 years</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="sex">Gender</label>
+                    <select id="sex" name="9" required>
+                        <option value="" disabled selected>Select sex</option>
+                        <option value="0">Female</option>
+                        <option value="1">Male</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="smoking">Smoking Habit</label>
+                    <select id="smoking" name="10" required>
+                        <option value="" disabled selected>Do they smoke?</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="time">Time (days)</label>
+                    <input type="number" id="time" name="11" min="1" step="1" required placeholder="e.g. 150">
+                    <span class="helper-text">Recommended training range: 1–300 days</span>
+                </div>
+
+                <!-- Section: Clinical Indicators & Vitals -->
+                <div class="section-title">Clinical Indicators & Lab Results</div>
+
+                <div class="form-group">
+                    <label for="anaemia">Anaemia (Red Blood Cell decrease)</label>
+                    <select id="anaemia" name="1" required>
+                        <option value="" disabled selected>Has anaemia?</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="diabetes">Diabetes</label>
+                    <select id="diabetes" name="3" required>
+                        <option value="" disabled selected>Has diabetes?</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="high_bp">High Blood Pressure</label>
+                    <select id="high_bp" name="5" required>
+                        <option value="" disabled selected>Has high BP?</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cpk">Creatinine Phosphokinase (CPK) (mcg/L)</label>
+                    <input type="number" id="cpk" name="2" min="0" step="any" required placeholder="e.g. 250">
+                    <span class="helper-text">Recommended training range: 20–8000 mcg/L</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="ejection_fraction">Ejection Fraction (%)</label>
+                    <input type="number" id="ejection_fraction" name="4" min="1" max="100" step="1" required placeholder="e.g. 38">
+                    <span class="helper-text">Recommended training range: 10–80%</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="platelets">Platelets (kiloplatelets/mL)</label>
+                    <input type="number" id="platelets" name="6" min="1" step="any" required placeholder="e.g. 265000">
+                    <span class="helper-text">Recommended training range: 25,000–85,0000 kiloplatelets/mL</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="serum_creatinine">Serum Creatinine (mg/dL)</label>
+                    <input type="number" id="serum_creatinine" name="7" min="0" step="any" required placeholder="e.g. 1.1">
+                    <span class="helper-text">Recommended training range: 0.5–9.4 mg/dL</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="serum_sodium">Serum Sodium (mEq/L)</label>
+                    <input type="number" id="serum_sodium" name="8" min="80" max="180" step="any" required placeholder="e.g. 135">
+                    <span class="helper-text">Recommended training range: 110–150 mEq/L</span>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-button">
+                    <span class="spinner" id="btn-spinner"></span>
+                    <span id="btn-text">Run Prognostic Prediction</span>
+                </button>
+            </form>
+
+            <!-- Asynchronous Prediction Result Area -->
+            <div class="result-wrapper" id="result-wrapper" style="display: none;">
+                <div class="result-card" id="result-card">
+                    <span class="result-icon" id="result-icon"></span>
+                    <div class="result-title" id="result-title"></div>
+                    <div class="result-message" id="result-message"></div>
+                    
+                    <div class="summary-box">
+                        <div class="summary-title">Prediction Summary</div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Risk Level :</div>
+                            <div class="summary-value" id="summary-risk"></div>
+                        </div>
+
+                        <div class="summary-item">
+                            <div class="summary-label">Recommendation :</div>
+                            <div class="summary-value" id="summary-rec"></div>
+                        </div>
+
+                        <div class="summary-item">
+                            <div class="summary-label">Status :</div>
+                            <div class="summary-value" id="summary-status"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" class="reset-btn" onclick="handleReset()">Reset Form</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+
+    <script>
+        // Apply button ripple effect
+        const btn = document.getElementById('submit-button');
+        btn.addEventListener('click', function (e) {
+            if (this.disabled) return;
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        });
+
+        // Toast Helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✔' : '❌'}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'toastFadeOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // Asynchronous Submit
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const form = document.getElementById('prediction-form');
+            const submitBtn = document.getElementById('submit-button');
+            const btnText = document.getElementById('btn-text');
+            const btnSpinner = document.getElementById('btn-spinner');
+            const formCard = document.getElementById('form-card');
+            const resultWrapper = document.getElementById('result-wrapper');
+            const resultCard = document.getElementById('result-card');
+
+            // Hide old result
+            resultWrapper.style.display = 'none';
+
+            // Loading state
+            submitBtn.disabled = true;
+            btnText.innerText = 'Analyzing Patient...';
+            btnSpinner.style.display = 'block';
+            formCard.classList.add('faded');
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: new FormData(form)
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || 'Server error occurred');
+                }
+
+                const data = await response.json();
+
+                // Populate Result Details
+                const resultIcon = document.getElementById('result-icon');
+                const resultTitle = document.getElementById('result-title');
+                const resultMessage = document.getElementById('result-message');
+                const summaryRisk = document.getElementById('summary-risk');
+                const summaryRec = document.getElementById('summary-rec');
+                const summaryStatus = document.getElementById('summary-status');
+
+                // Clear previous classes
+                resultCard.className = 'result-card';
+                resultIcon.className = 'result-icon';
+
+                // Configure dynamic result aesthetics
+                if (data.risk === 'Low Risk') {
+                    resultCard.classList.add('low');
+                    resultIcon.innerText = '💚';
+                    resultIcon.classList.add('bounce');
+                } else if (data.risk === 'Moderate Risk') {
+                    resultCard.classList.add('moderate');
+                    resultIcon.innerText = '💛';
+                    resultIcon.classList.add('bounce');
+                } else {
+                    resultCard.classList.add('high');
+                    resultIcon.innerText = '❤️';
+                    resultIcon.classList.add('heartbeat');
+                }
+
+                resultTitle.innerText = data.risk;
+                resultMessage.innerText = data.message;
+                summaryRisk.innerText = data.risk;
+                summaryRec.innerText = data.recommendation;
+                summaryStatus.innerText = 'Prediction completed successfully.';
+
+                // Show & scroll
+                resultWrapper.style.display = 'flex';
+                showToast('Prediction completed successfully', 'success');
+
+                setTimeout(() => {
+                    resultCard.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }, 100);
+
+            } catch (error) {
+                console.error(error);
+                showToast(error.message, 'error');
+            } finally {
+                // Restore Form Interaction State
+                submitBtn.disabled = false;
+                btnText.innerText = 'Run Prognostic Prediction';
+                btnSpinner.style.display = 'none';
+                formCard.classList.remove('faded');
+            }
+        }
+
+        // Reset Logic
+        function handleReset() {
+            // Clear inputs
+            document.getElementById('prediction-form').reset();
+            
+            // Hide result section
+            const resultWrapper = document.getElementById('result-wrapper');
+            resultWrapper.style.display = 'none';
+            
+            // Scroll smoothly back to header
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>
